@@ -1,2 +1,3 @@
 # Typescript-s
-practice
+
+typescript && javascript study
