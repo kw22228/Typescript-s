@@ -118,12 +118,34 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   return newRequire;
 })({"app.js":[function(require,module,exports) {
+var NEWS_URL = 'https://api.hnpwa.com/v0/news/1.json';
+var CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json';
+var content = document.createElement('div');
 var ajax = new XMLHttpRequest();
-ajax.open('GET', 'https://api.hnpwa.com/v0/news/1.json', false);
+ajax.open('GET', NEWS_URL, false);
 ajax.send();
 var newsFeeds = JSON.parse(ajax.response);
+var ul = document.createElement('ul');
 var root = document.getElementById('root');
-root.innerHTML = "\n    <ul>\n        <li>".concat(newsFeeds[0].title, "</li>\n        <li>").concat(newsFeeds[1].title, "</li>\n        <li>").concat(newsFeeds[2].title, "</li>\n    </ul>\n");
+window.addEventListener('hashchange', function (e) {
+  var hashId = location.hash.substring(1);
+  ajax.open('GET', CONTENT_URL.replace('@id', hashId), false);
+  ajax.send();
+  var newsContent = JSON.parse(ajax.response);
+  var title = document.createElement('h1');
+  title.innerHTML = newsContent.title;
+  content.appendChild(title);
+});
+newsFeeds.map(function (newsFeed, i) {
+  var li = document.createElement('li');
+  var a = document.createElement('a');
+  a.href = '#' + newsFeed.id;
+  a.innerHTML = "".concat(i + 1, ". ").concat(newsFeed.title, " (").concat(newsFeed.comments_count, ")");
+  li.appendChild(a);
+  ul.appendChild(li);
+});
+root.appendChild(ul);
+root.appendChild(content);
 },{}],"../../../../../../AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
