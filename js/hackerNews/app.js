@@ -2,20 +2,22 @@ const NEWS_URL = 'https://api.hnpwa.com/v0/news/1.json';
 const CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json';
 const content = document.createElement('div');
 
-const ajax = new XMLHttpRequest();
-ajax.open('GET', NEWS_URL, false);
-ajax.send();
+const getData = url => {
+    const ajax = new XMLHttpRequest();
+    ajax.open('GET', url, false);
+    ajax.send();
 
-const newsFeeds = JSON.parse(ajax.response);
+    return JSON.parse(ajax.response);
+};
+
+const newsFeeds = getData(NEWS_URL);
 const ul = document.createElement('ul');
 const root = document.getElementById('root');
 
 window.addEventListener('hashchange', e => {
     const hashId = location.hash.substring(1);
-    ajax.open('GET', CONTENT_URL.replace('@id', hashId), false);
-    ajax.send();
 
-    const newsContent = JSON.parse(ajax.response);
+    const newsContent = getData(CONTENT_URL.replace('@id', hashId));
     const title = document.createElement('h1');
 
     title.innerHTML = newsContent.title;
@@ -23,14 +25,17 @@ window.addEventListener('hashchange', e => {
 });
 
 newsFeeds.map((newsFeed, i) => {
-    const li = document.createElement('li');
-    const a = document.createElement('a');
+    const div = document.createElement('div');
 
-    a.href = '#' + newsFeed.id;
-    a.innerHTML = `${i + 1}. ${newsFeed.title} (${newsFeed.comments_count})`;
+    div.innerHTML = `
+        <li>
+            <a href="#${newsFeed.id}">
+            ${i + 1}. ${newsFeed.title} (${newsFeed.comments_count})
+            </a>
+        </li>
+    `;
 
-    li.appendChild(a);
-    ul.appendChild(li);
+    ul.appendChild(div.firstElementChild);
 });
 
 root.appendChild(ul);

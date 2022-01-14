@@ -121,28 +121,28 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 var NEWS_URL = 'https://api.hnpwa.com/v0/news/1.json';
 var CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json';
 var content = document.createElement('div');
-var ajax = new XMLHttpRequest();
-ajax.open('GET', NEWS_URL, false);
-ajax.send();
-var newsFeeds = JSON.parse(ajax.response);
+
+var getData = function getData(url) {
+  var ajax = new XMLHttpRequest();
+  ajax.open('GET', url, false);
+  ajax.send();
+  return JSON.parse(ajax.response);
+};
+
+var newsFeeds = getData(NEWS_URL);
 var ul = document.createElement('ul');
 var root = document.getElementById('root');
 window.addEventListener('hashchange', function (e) {
   var hashId = location.hash.substring(1);
-  ajax.open('GET', CONTENT_URL.replace('@id', hashId), false);
-  ajax.send();
-  var newsContent = JSON.parse(ajax.response);
+  var newsContent = getData(CONTENT_URL.replace('@id', hashId));
   var title = document.createElement('h1');
   title.innerHTML = newsContent.title;
   content.appendChild(title);
 });
 newsFeeds.map(function (newsFeed, i) {
-  var li = document.createElement('li');
-  var a = document.createElement('a');
-  a.href = '#' + newsFeed.id;
-  a.innerHTML = "".concat(i + 1, ". ").concat(newsFeed.title, " (").concat(newsFeed.comments_count, ")");
-  li.appendChild(a);
-  ul.appendChild(li);
+  var div = document.createElement('div');
+  div.innerHTML = "\n        <li>\n            <a href=\"#".concat(newsFeed.id, "\">\n            ").concat(i + 1, ". ").concat(newsFeed.title, " (").concat(newsFeed.comments_count, ")\n            </a>\n        </li>\n    ");
+  ul.appendChild(div.firstElementChild);
 });
 root.appendChild(ul);
 root.appendChild(content);
