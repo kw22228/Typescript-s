@@ -120,7 +120,10 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 })({"app.js":[function(require,module,exports) {
 var NEWS_URL = 'https://api.hnpwa.com/v0/news/1.json';
 var CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json';
-var content = document.createElement('div');
+var root = document.getElementById('root');
+var store = {
+  currentPage: 1
+};
 
 var getData = function getData(url) {
   var ajax = new XMLHttpRequest();
@@ -129,23 +132,46 @@ var getData = function getData(url) {
   return JSON.parse(ajax.response);
 };
 
-var newsFeeds = getData(NEWS_URL);
-var ul = document.createElement('ul');
-var root = document.getElementById('root');
-window.addEventListener('hashchange', function (e) {
-  var hashId = location.hash.substring(1);
+var getNewsList = function getNewsList() {
+  var newsList = [];
+  var newsFeeds = getData(NEWS_URL);
+  var list = 8;
+  var listCnt = newsFeeds.length;
+  var maxList = store.currentPage * list > listCnt ? listCnt : store.currentPage * list;
+  var maxPage = Math.ceil(listCnt / list);
+  newsList.push('<ul>');
+
+  for (var i = (store.currentPage - 1) * list; i < maxList; i++) {
+    newsList.push("\n            <li>\n                <a href=\"#/show/".concat(newsFeeds[i].id, "\">\n                ").concat(i + 1, ". ").concat(newsFeeds[i].title, " (").concat(newsFeeds[i].comments_count, ")\n                </a>\n            </li>\n        "));
+  }
+
+  newsList.push('</ul>');
+  newsList.push("\n        <div>\n            <a href=\"#/page/".concat(store.currentPage > 1 ? store.currentPage - 1 : 1, "\">\uC774\uC804</a>\n            <a href=\"#/page/").concat(store.currentPage < maxPage ? store.currentPage + 1 : maxPage, "\">\uB2E4\uC74C</a>\n        </div>\n    "));
+  root.innerHTML = newsList.join('');
+};
+
+var getNewsDetail = function getNewsDetail() {
+  var hashId = location.hash.substring(7);
   var newsContent = getData(CONTENT_URL.replace('@id', hashId));
   var title = document.createElement('h1');
-  title.innerHTML = newsContent.title;
-  content.appendChild(title);
-});
-newsFeeds.map(function (newsFeed, i) {
-  var div = document.createElement('div');
-  div.innerHTML = "\n        <li>\n            <a href=\"#".concat(newsFeed.id, "\">\n            ").concat(i + 1, ". ").concat(newsFeed.title, " (").concat(newsFeed.comments_count, ")\n            </a>\n        </li>\n    ");
-  ul.appendChild(div.firstElementChild);
-});
-root.appendChild(ul);
-root.appendChild(content);
+  root.innerHTML = "\n        <h1>".concat(newsContent.title, "</h1>\n\n        <div>\n            <a href=\"#/page/").concat(store.currentPage, "\">\uBAA9\uB85D\uC73C\uB85C</a>\n        </div>\n    ");
+};
+
+var router = function router() {
+  var routePath = location.hash;
+
+  if (routePath === '') {
+    getNewsList();
+  } else if (routePath.indexOf('#/page/') >= 0) {
+    store.currentPage = Number(routePath.substring(7));
+    getNewsList();
+  } else {
+    getNewsDetail();
+  }
+};
+
+window.addEventListener('hashchange', router);
+router();
 },{}],"../../../../../../AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';

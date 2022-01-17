@@ -1,6 +1,9 @@
 const NEWS_URL = 'https://api.hnpwa.com/v0/news/1.json';
 const CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json';
-const content = document.createElement('div');
+const root = document.getElementById('root');
+const store = {
+    currentPage: 1,
+};
 
 const getData = url => {
     const ajax = new XMLHttpRequest();
@@ -10,33 +13,67 @@ const getData = url => {
     return JSON.parse(ajax.response);
 };
 
-const newsFeeds = getData(NEWS_URL);
-const ul = document.createElement('ul');
-const root = document.getElementById('root');
+const getNewsList = () => {
+    const newsList = [];
+    const newsFeeds = getData(NEWS_URL);
+    const list = 8;
+    const listCnt = newsFeeds.length;
+    const maxList =
+        store.currentPage * list > listCnt ? listCnt : store.currentPage * list;
+    const maxPage = Math.ceil(listCnt / list);
 
-window.addEventListener('hashchange', e => {
-    const hashId = location.hash.substring(1);
+    newsList.push('<ul>');
+    for (let i = (store.currentPage - 1) * list; i < maxList; i++) {
+        newsList.push(`
+            <li>
+                <a href="#/show/${newsFeeds[i].id}">
+                ${i + 1}. ${newsFeeds[i].title} (${newsFeeds[i].comments_count})
+                </a>
+            </li>
+        `);
+    }
+    newsList.push('</ul>');
+
+    newsList.push(`
+        <div>
+            <a href="#/page/${
+                store.currentPage > 1 ? store.currentPage - 1 : 1
+            }">이전</a>
+            <a href="#/page/${
+                store.currentPage < maxPage ? store.currentPage + 1 : maxPage
+            }">다음</a>
+        </div>
+    `);
+    root.innerHTML = newsList.join('');
+};
+
+const getNewsDetail = () => {
+    const hashId = location.hash.substring(7);
 
     const newsContent = getData(CONTENT_URL.replace('@id', hashId));
     const title = document.createElement('h1');
 
-    title.innerHTML = newsContent.title;
-    content.appendChild(title);
-});
+    root.innerHTML = `
+        <h1>${newsContent.title}</h1>
 
-newsFeeds.map((newsFeed, i) => {
-    const div = document.createElement('div');
-
-    div.innerHTML = `
-        <li>
-            <a href="#${newsFeed.id}">
-            ${i + 1}. ${newsFeed.title} (${newsFeed.comments_count})
-            </a>
-        </li>
+        <div>
+            <a href="#/page/${store.currentPage}">목록으로</a>
+        </div>
     `;
+};
 
-    ul.appendChild(div.firstElementChild);
-});
+const router = () => {
+    const routePath = location.hash;
 
-root.appendChild(ul);
-root.appendChild(content);
+    if (routePath === '') {
+        getNewsList();
+    } else if (routePath.indexOf('#/page/') >= 0) {
+        store.currentPage = Number(routePath.substring(7));
+        getNewsList();
+    } else {
+        getNewsDetail();
+    }
+};
+window.addEventListener('hashchange', router);
+
+router();
