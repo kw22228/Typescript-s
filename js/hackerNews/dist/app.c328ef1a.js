@@ -139,15 +139,16 @@ var getNewsList = function getNewsList() {
   var listCnt = newsFeeds.length;
   var maxList = store.currentPage * list > listCnt ? listCnt : store.currentPage * list;
   var maxPage = Math.ceil(listCnt / list);
-  newsList.push('<ul>');
+  var template = "\n        <div class=\"bg-gray-600 min-h-screen\">\n            <div class=\"bg-white text-xl\">\n                <div class=\"mx-auto px-4\">\n                    <div class=\"flex justify-between items-center py-6\">\n                        <div class=\"flex justify-start\">\n                            <h1 class=\"font-extrabold\">Hacker News</h1>\n                        </div>\n                        <div class=\"items-center justify-end\">\n                            <a href=\"#/page/{{__prev_page__}}\" class=\"text-gray-500\">\n                                Previous\n                            </a>\n                            <a href=\"#/page/{{__next_page__}}\" class=\"text-gray-500 ml-4\">\n                                Next\n                            </a>\n                        </div>\n                    </div>\n                </div>\n            </div>\n            <div class=\"p-4 text-2xl text-gray-700\">\n                {{__news_list__}}\n            </div>\n        </div>\n    ";
 
   for (var i = (store.currentPage - 1) * list; i < maxList; i++) {
-    newsList.push("\n            <li>\n                <a href=\"#/show/".concat(newsFeeds[i].id, "\">\n                ").concat(i + 1, ". ").concat(newsFeeds[i].title, " (").concat(newsFeeds[i].comments_count, ")\n                </a>\n            </li>\n        "));
+    newsList.push("\n            <div class=\"p-6 bg-white mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100\">\n                <div class=\"flex\">\n                    <div class=\"flex-auto\">\n                        <a href=\"#/show/".concat(newsFeeds[i].id, "\">").concat(newsFeeds[i].title, "</a>\n                    </div>\n                    <div class=\"text-center text-sm\">\n                        <div class=\"w-10 text-white bg-green-300 rounded-lg px-0 py-2\">").concat(newsFeeds[i].comments_count, "</div>\n                    </div>\n                </div>\n                <div class=\"flex mt-3\">\n                    <div class=\"grid grid-cols-3 text-sm text-gray-500\">\n                        <div><i class=\"fas fa-user mr-1\">").concat(newsFeeds[i].user, "</div>\n                        <div><i class=\"fas fa-heart mr-1\">").concat(newsFeeds[i].points, "</div>\n                        <div><i class=\"fas fa-clock mr-1\">").concat(newsFeeds[i].time_ago, "</div>\n                    </div>\n                </div>\n            </div>\n        "));
   }
 
-  newsList.push('</ul>');
-  newsList.push("\n        <div>\n            <a href=\"#/page/".concat(store.currentPage > 1 ? store.currentPage - 1 : 1, "\">\uC774\uC804</a>\n            <a href=\"#/page/").concat(store.currentPage < maxPage ? store.currentPage + 1 : maxPage, "\">\uB2E4\uC74C</a>\n        </div>\n    "));
-  root.innerHTML = newsList.join('');
+  template = template.replace('{{__news_list__}}', newsList.join(''));
+  template = template.replace('{{__prev_page__}}', store.currentPage > 1 ? store.currentPage - 1 : 1);
+  template = template.replace('{{__next_page__}}', store.currentPage < maxPage ? store.currentPage + 1 : maxPage);
+  root.innerHTML = template;
 };
 
 var getNewsDetail = function getNewsDetail() {
