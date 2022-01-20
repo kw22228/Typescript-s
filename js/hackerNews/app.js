@@ -3,6 +3,7 @@ const CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json';
 const root = document.getElementById('root');
 const store = {
     currentPage: 1,
+    feeds: [],
 };
 
 const getData = url => {
@@ -13,21 +14,35 @@ const getData = url => {
     return JSON.parse(ajax.response);
 };
 
+const makeFeeds = feeds => {
+    const newFeeds = feeds.map(feed => {
+        return { ...feed, read: false };
+    });
+
+    return newFeeds;
+};
+
 const getNewsList = () => {
     const newsList = [];
-    const newsFeeds = getData(NEWS_URL);
+    let newsFeeds = store.feeds;
+    if (newsFeeds.length === 0) {
+        newsFeeds = store.feeds = makeFeeds(getData(NEWS_URL));
+    }
     const list = 8;
     const listCnt = newsFeeds.length;
     const maxList =
         store.currentPage * list > listCnt ? listCnt : store.currentPage * list;
     const maxPage = Math.ceil(listCnt / list);
+
     let template = `
         <div class="bg-gray-600 min-h-screen">
             <div class="bg-white text-xl">
                 <div class="mx-auto px-4">
                     <div class="flex justify-between items-center py-6">
                         <div class="flex justify-start">
-                            <h1 class="font-extrabold">Hacker News</h1>
+                            <h1 class="font-extrabold">
+                                <a href="#">Hacker News</a>
+                            </h1>
                         </div>
                         <div class="items-center justify-end">
                             <a href="#/page/{{__prev_page__}}" class="text-gray-500">
@@ -48,20 +63,28 @@ const getNewsList = () => {
 
     for (let i = (store.currentPage - 1) * list; i < maxList; i++) {
         newsList.push(`
-        <div class="p-6 bg-white mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100">
+        <div class="p-6 ${
+            !newsFeeds[i].read ? 'bg-white' : 'bg-green-500'
+        } mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100">
             <div class="flex">
             <div class="flex-auto">
                 <a href="#/show/${newsFeeds[i].id}">${newsFeeds[i].title}</a>  
             </div>
             <div class="text-center text-sm">
-                <div class="w-10 text-white bg-green-300 rounded-lg px-0 py-2">${newsFeeds[i].comments_count}</div>
+                <div class="w-10 text-white bg-green-300 rounded-lg px-0 py-2">${
+                    newsFeeds[i].comments_count
+                }</div>
             </div>
             </div>
             <div class="flex mt-3">
             <div class="grid grid-cols-3 text-sm text-gray-500">
                 <div><i class="fas fa-user mr-1"></i>${newsFeeds[i].user}</div>
-                <div><i class="fas fa-heart mr-1"></i>${newsFeeds[i].points}</div>
-                <div><i class="far fa-clock mr-1"></i>${newsFeeds[i].time_ago}</div>
+                <div><i class="fas fa-heart mr-1"></i>${
+                    newsFeeds[i].points
+                }</div>
+                <div><i class="far fa-clock mr-1"></i>${
+                    newsFeeds[i].time_ago
+                }</div>
             </div>  
             </div>
         </div>    
@@ -89,12 +112,14 @@ const getNewsDetail = () => {
                 <div class="mx-auto px-4">
                 <div class="flex justify-between items-center py-6">
                     <div class="flex justify-start">
-                    <h1 class="font-extrabold">Hacker News</h1>
+                        <h1 class="font-extrabold">
+                            <a href="#">Hacker News</a>
+                        </h1>
                     </div>
                     <div class="items-center justify-end">
-                    <a href="#/page/${store.currentPage}" class="text-gray-500">
-                        <i class="fa fa-times"></i>
-                    </a>
+                        <a href="#/page/${store.currentPage}" class="text-gray-500">
+                            <i class="fa fa-times"></i>
+                        </a>
                     </div>
                 </div>
                 </div>
@@ -111,6 +136,14 @@ const getNewsDetail = () => {
             </div>
         </div>
     `;
+
+    store.feeds.find(feed => {
+        if (feed.id === Number(hashId)) {
+            feed.read = true;
+        }
+
+        return feed.id === Number(hashId);
+    });
 
     const makeComment = (comments, depth = 0) => {
         const commentStr = [];

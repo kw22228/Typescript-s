@@ -118,11 +118,18 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   return newRequire;
 })({"app.js":[function(require,module,exports) {
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 var NEWS_URL = 'https://api.hnpwa.com/v0/news/1.json';
 var CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json';
 var root = document.getElementById('root');
 var store = {
-  currentPage: 1
+  currentPage: 1,
+  feeds: []
 };
 
 var getData = function getData(url) {
@@ -132,17 +139,31 @@ var getData = function getData(url) {
   return JSON.parse(ajax.response);
 };
 
+var makeFeeds = function makeFeeds(feeds) {
+  var newFeeds = feeds.map(function (feed) {
+    return _objectSpread(_objectSpread({}, feed), {}, {
+      read: false
+    });
+  });
+  return newFeeds;
+};
+
 var getNewsList = function getNewsList() {
   var newsList = [];
-  var newsFeeds = getData(NEWS_URL);
+  var newsFeeds = store.feeds;
+
+  if (newsFeeds.length === 0) {
+    newsFeeds = store.feeds = makeFeeds(getData(NEWS_URL));
+  }
+
   var list = 8;
   var listCnt = newsFeeds.length;
   var maxList = store.currentPage * list > listCnt ? listCnt : store.currentPage * list;
   var maxPage = Math.ceil(listCnt / list);
-  var template = "\n        <div class=\"bg-gray-600 min-h-screen\">\n            <div class=\"bg-white text-xl\">\n                <div class=\"mx-auto px-4\">\n                    <div class=\"flex justify-between items-center py-6\">\n                        <div class=\"flex justify-start\">\n                            <h1 class=\"font-extrabold\">Hacker News</h1>\n                        </div>\n                        <div class=\"items-center justify-end\">\n                            <a href=\"#/page/{{__prev_page__}}\" class=\"text-gray-500\">\n                                Previous\n                            </a>\n                            <a href=\"#/page/{{__next_page__}}\" class=\"text-gray-500 ml-4\">\n                                Next\n                            </a>\n                        </div>\n                    </div>\n                </div>\n            </div>\n            <div class=\"p-4 text-2xl text-gray-700\">\n                {{__news_list__}}\n            </div>\n        </div>\n    ";
+  var template = "\n        <div class=\"bg-gray-600 min-h-screen\">\n            <div class=\"bg-white text-xl\">\n                <div class=\"mx-auto px-4\">\n                    <div class=\"flex justify-between items-center py-6\">\n                        <div class=\"flex justify-start\">\n                            <h1 class=\"font-extrabold\">\n                                <a href=\"#\">Hacker News</a>\n                            </h1>\n                        </div>\n                        <div class=\"items-center justify-end\">\n                            <a href=\"#/page/{{__prev_page__}}\" class=\"text-gray-500\">\n                                Previous\n                            </a>\n                            <a href=\"#/page/{{__next_page__}}\" class=\"text-gray-500 ml-4\">\n                                Next\n                            </a>\n                        </div>\n                    </div>\n                </div>\n            </div>\n            <div class=\"p-4 text-2xl text-gray-700\">\n                {{__news_list__}}\n            </div>\n        </div>\n    ";
 
   for (var i = (store.currentPage - 1) * list; i < maxList; i++) {
-    newsList.push("\n        <div class=\"p-6 bg-white mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100\">\n            <div class=\"flex\">\n            <div class=\"flex-auto\">\n                <a href=\"#/show/".concat(newsFeeds[i].id, "\">").concat(newsFeeds[i].title, "</a>  \n            </div>\n            <div class=\"text-center text-sm\">\n                <div class=\"w-10 text-white bg-green-300 rounded-lg px-0 py-2\">").concat(newsFeeds[i].comments_count, "</div>\n            </div>\n            </div>\n            <div class=\"flex mt-3\">\n            <div class=\"grid grid-cols-3 text-sm text-gray-500\">\n                <div><i class=\"fas fa-user mr-1\"></i>").concat(newsFeeds[i].user, "</div>\n                <div><i class=\"fas fa-heart mr-1\"></i>").concat(newsFeeds[i].points, "</div>\n                <div><i class=\"far fa-clock mr-1\"></i>").concat(newsFeeds[i].time_ago, "</div>\n            </div>  \n            </div>\n        </div>    \n        "));
+    newsList.push("\n        <div class=\"p-6 ".concat(!newsFeeds[i].read ? 'bg-white' : 'bg-green-500', " mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100\">\n            <div class=\"flex\">\n            <div class=\"flex-auto\">\n                <a href=\"#/show/").concat(newsFeeds[i].id, "\">").concat(newsFeeds[i].title, "</a>  \n            </div>\n            <div class=\"text-center text-sm\">\n                <div class=\"w-10 text-white bg-green-300 rounded-lg px-0 py-2\">").concat(newsFeeds[i].comments_count, "</div>\n            </div>\n            </div>\n            <div class=\"flex mt-3\">\n            <div class=\"grid grid-cols-3 text-sm text-gray-500\">\n                <div><i class=\"fas fa-user mr-1\"></i>").concat(newsFeeds[i].user, "</div>\n                <div><i class=\"fas fa-heart mr-1\"></i>").concat(newsFeeds[i].points, "</div>\n                <div><i class=\"far fa-clock mr-1\"></i>").concat(newsFeeds[i].time_ago, "</div>\n            </div>  \n            </div>\n        </div>    \n        "));
   }
 
   template = template.replace('{{__news_list__}}', newsList.join(''));
@@ -154,7 +175,14 @@ var getNewsList = function getNewsList() {
 var getNewsDetail = function getNewsDetail() {
   var hashId = location.hash.substring(7);
   var newsContent = getData(CONTENT_URL.replace('@id', hashId));
-  var template = "\n        <div class=\"bg-gray-600 min-h-screen pb-8\">\n            <div class=\"bg-white text-xl\">\n                <div class=\"mx-auto px-4\">\n                <div class=\"flex justify-between items-center py-6\">\n                    <div class=\"flex justify-start\">\n                    <h1 class=\"font-extrabold\">Hacker News</h1>\n                    </div>\n                    <div class=\"items-center justify-end\">\n                    <a href=\"#/page/".concat(store.currentPage, "\" class=\"text-gray-500\">\n                        <i class=\"fa fa-times\"></i>\n                    </a>\n                    </div>\n                </div>\n                </div>\n            </div>\n\n            <div class=\"h-full border rounded-xl bg-white m-6 p-4 \">\n                <h2>").concat(newsContent.title, "</h2>\n                <div class=\"text-gray-400 h-20\">\n                ").concat(newsContent.content, "\n                </div>\n\n                {{__comments__}}\n\n            </div>\n        </div>\n    ");
+  var template = "\n        <div class=\"bg-gray-600 min-h-screen pb-8\">\n            <div class=\"bg-white text-xl\">\n                <div class=\"mx-auto px-4\">\n                <div class=\"flex justify-between items-center py-6\">\n                    <div class=\"flex justify-start\">\n                        <h1 class=\"font-extrabold\">\n                            <a href=\"#\">Hacker News</a>\n                        </h1>\n                    </div>\n                    <div class=\"items-center justify-end\">\n                        <a href=\"#/page/".concat(store.currentPage, "\" class=\"text-gray-500\">\n                            <i class=\"fa fa-times\"></i>\n                        </a>\n                    </div>\n                </div>\n                </div>\n            </div>\n\n            <div class=\"h-full border rounded-xl bg-white m-6 p-4 \">\n                <h2>").concat(newsContent.title, "</h2>\n                <div class=\"text-gray-400 h-20\">\n                ").concat(newsContent.content, "\n                </div>\n\n                {{__comments__}}\n\n            </div>\n        </div>\n    ");
+  store.feeds.find(function (feed) {
+    if (feed.id === Number(hashId)) {
+      feed.read = true;
+    }
+
+    return feed.id === Number(hashId);
+  });
 
   var makeComment = function makeComment(comments) {
     var depth = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
@@ -216,7 +244,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54703" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "65179" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
