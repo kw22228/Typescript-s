@@ -165,7 +165,12 @@ var getNewsList = function getNewsList() {
   template = template.replace('{{__news_list__}}', newsList.join(''));
   template = template.replace('{{__prev_page__}}', store.currentPage > 1 ? store.currentPage - 1 : 1);
   template = template.replace('{{__next_page__}}', store.currentPage < maxPage ? store.currentPage + 1 : maxPage);
-  root.innerHTML = template;
+
+  if (root) {
+    root.innerHTML = template;
+  } else {
+    console.log('Undefined root Element');
+  }
 };
 
 var getNewsDetail = function getNewsDetail() {
@@ -194,7 +199,12 @@ var getNewsDetail = function getNewsDetail() {
   };
 
   template = template.replace('{{__comments__}}', makeComment(newsContent.comments));
-  root.innerHTML = template;
+
+  if (root) {
+    root.innerHTML = template;
+  } else {
+    console.log('Undefined root Element');
+  }
 };
 
 var router = function router() {

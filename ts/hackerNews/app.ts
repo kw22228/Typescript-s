@@ -1,13 +1,29 @@
+type Store = {
+    //type alias (대문자로 시작하는 컨벤션이 있음)
+    currentPage: number;
+    feeds: NewsFeeds[]; //NewsFeeds 데이터가 들어감
+};
+type NewsFeeds = {
+    id: number;
+    comments_count: number;
+    url: string;
+    user: string;
+    time_ago: string;
+    points: number;
+    title: string;
+    read?: boolean; // ?속성 : 있을때도 있고 없을때도 있음.
+};
+
 const NEWS_URL = 'https://api.hnpwa.com/v0/news/1.json';
 const CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json';
-const root = document.getElementById('root');
-const store = {
+const root: HTMLElement | null = document.getElementById('root');
+const store: Store = {
     currentPage: 1,
     feeds: [],
 };
 
 const getData = url => {
-    const ajax = new XMLHttpRequest();
+    const ajax: XMLHttpRequest = new XMLHttpRequest();
     ajax.open('GET', url, false);
     ajax.send();
 
@@ -24,7 +40,7 @@ const makeFeeds = feeds => {
 
 const getNewsList = () => {
     const newsList = [];
-    let newsFeeds = store.feeds;
+    let newsFeeds: NewsFeeds[] = store.feeds;
     if (newsFeeds.length === 0) {
         newsFeeds = store.feeds = makeFeeds(getData(NEWS_URL));
     }
@@ -100,7 +116,11 @@ const getNewsList = () => {
         store.currentPage < maxPage ? store.currentPage + 1 : maxPage
     );
 
-    root.innerHTML = template;
+    if (root) {
+        root.innerHTML = template;
+    } else {
+        console.log('Undefined root Element');
+    }
 };
 
 const getNewsDetail = () => {
@@ -170,7 +190,12 @@ const getNewsDetail = () => {
         '{{__comments__}}',
         makeComment(newsContent.comments)
     );
-    root.innerHTML = template;
+
+    if (root) {
+        root.innerHTML = template;
+    } else {
+        console.log('Undefined root Element');
+    }
 };
 
 const router = () => {
