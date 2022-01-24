@@ -126,7 +126,7 @@ var root = document.getElementById('root');
 var store = {
   currentPage: 1,
   feeds: []
-};
+}; // getData<NewsFeeds[]>(NEWS_URL) => 제네릭을 사용하여 유동적으로 type이 들어올 수 있도록 한다.
 
 var getData = function getData(url) {
   var ajax = new XMLHttpRequest();
@@ -142,6 +142,14 @@ var makeFeeds = function makeFeeds(feeds) {
     });
   });
   return newFeeds;
+};
+
+var render = function render(html) {
+  if (root) {
+    root.innerHTML = html;
+  } else {
+    console.log('Undefined root Element');
+  }
 };
 
 var getNewsList = function getNewsList() {
@@ -163,14 +171,9 @@ var getNewsList = function getNewsList() {
   }
 
   template = template.replace('{{__news_list__}}', newsList.join(''));
-  template = template.replace('{{__prev_page__}}', store.currentPage > 1 ? store.currentPage - 1 : 1);
-  template = template.replace('{{__next_page__}}', store.currentPage < maxPage ? store.currentPage + 1 : maxPage);
-
-  if (root) {
-    root.innerHTML = template;
-  } else {
-    console.log('Undefined root Element');
-  }
+  template = template.replace('{{__prev_page__}}', String(store.currentPage > 1 ? store.currentPage - 1 : 1));
+  template = template.replace('{{__next_page__}}', String(store.currentPage < maxPage ? store.currentPage + 1 : maxPage));
+  render(template);
 };
 
 var getNewsDetail = function getNewsDetail() {
@@ -184,27 +187,20 @@ var getNewsDetail = function getNewsDetail() {
 
     return feed.id === Number(hashId);
   });
-
-  var makeComment = function makeComment(comments) {
-    var depth = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-    var commentStr = [];
-    comments.map(function (comment) {
-      commentStr.push("\n                <div style=\"margin-left: ".concat(depth * 40, "px;\" class=\"mt-4\">\n                    <div class=\"text-gray-400\">\n                        <i class=\"fa fa-sort-up mr-2\"></i>\n                        <strong>").concat(comment.user, "</strong> ").concat(comment.time_ago, "\n                    </div>\n                    <p class=\"text-gray-700\">").concat(comment.content, "</p>\n                </div>\n            "));
-
-      if (comment.comments.length > 0) {
-        commentStr.push(makeComment(comment.comments, depth + 1));
-      }
-    });
-    return commentStr.join('');
-  };
-
   template = template.replace('{{__comments__}}', makeComment(newsContent.comments));
+  render(template);
+};
 
-  if (root) {
-    root.innerHTML = template;
-  } else {
-    console.log('Undefined root Element');
-  }
+var makeComment = function makeComment(comments) {
+  var commentStr = [];
+  comments.map(function (comment) {
+    commentStr.push("\n            <div style=\"margin-left: ".concat(comment.level * 40, "px;\" class=\"mt-4\">\n                <div class=\"text-gray-400\">\n                    <i class=\"fa fa-sort-up mr-2\"></i>\n                    <strong>").concat(comment.user, "</strong> ").concat(comment.time_ago, "\n                </div>\n                <p class=\"text-gray-700\">").concat(comment.content, "</p>\n            </div>\n        "));
+
+    if (comment.comments.length > 0) {
+      commentStr.push(makeComment(comment.comments));
+    }
+  });
+  return commentStr.join('');
 };
 
 var router = function router() {

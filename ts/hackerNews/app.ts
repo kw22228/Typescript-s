@@ -3,15 +3,27 @@ type Store = {
     currentPage: number;
     feeds: NewsFeeds[]; //NewsFeeds 데이터가 들어감
 };
-type NewsFeeds = {
+type News = {
     id: number;
-    comments_count: number;
+    time_ago: string;
+    title: string;
     url: string;
     user: string;
-    time_ago: string;
+    content: string;
+};
+
+//인터섹션 type alias
+type NewsFeeds = News & {
+    comments_count: number;
     points: number;
-    title: string;
     read?: boolean; // ?속성 : 있을때도 있고 없을때도 있음.
+};
+type NewsDetail = News & {
+    comments: NewsComment[];
+};
+type NewsComment = News & {
+    comments: NewsComment[];
+    level: number;
 };
 
 const NEWS_URL = 'https://api.hnpwa.com/v0/news/1.json';
@@ -22,7 +34,8 @@ const store: Store = {
     feeds: [],
 };
 
-const getData = url => {
+// getData<NewsFeeds[]>(NEWS_URL) => 제네릭을 사용하여 유동적으로 type이 들어올 수 있도록 한다.
+const getData = <AjaxResponse>(url: string): AjaxResponse => {
     const ajax: XMLHttpRequest = new XMLHttpRequest();
     ajax.open('GET', url, false);
     ajax.send();
@@ -30,7 +43,7 @@ const getData = url => {
     return JSON.parse(ajax.response);
 };
 
-const makeFeeds = feeds => {
+const makeFeeds = (feeds: NewsFeeds[]): NewsFeeds[] => {
     const newFeeds = feeds.map(feed => {
         return { ...feed, read: false };
     });
@@ -38,11 +51,19 @@ const makeFeeds = feeds => {
     return newFeeds;
 };
 
-const getNewsList = () => {
+const render = (html: string): void => {
+    if (root) {
+        root.innerHTML = html;
+    } else {
+        console.log('Undefined root Element');
+    }
+};
+
+const getNewsList = (): void => {
     const newsList = [];
     let newsFeeds: NewsFeeds[] = store.feeds;
     if (newsFeeds.length === 0) {
-        newsFeeds = store.feeds = makeFeeds(getData(NEWS_URL));
+        newsFeeds = store.feeds = makeFeeds(getData<NewsFeeds[]>(NEWS_URL));
     }
     const list = 8;
     const listCnt = newsFeeds.length;
@@ -109,23 +130,19 @@ const getNewsList = () => {
     template = template.replace('{{__news_list__}}', newsList.join(''));
     template = template.replace(
         '{{__prev_page__}}',
-        store.currentPage > 1 ? store.currentPage - 1 : 1
+        String(store.currentPage > 1 ? store.currentPage - 1 : 1)
     );
     template = template.replace(
         '{{__next_page__}}',
-        store.currentPage < maxPage ? store.currentPage + 1 : maxPage
+        String(store.currentPage < maxPage ? store.currentPage + 1 : maxPage)
     );
 
-    if (root) {
-        root.innerHTML = template;
-    } else {
-        console.log('Undefined root Element');
-    }
+    render(template);
 };
 
-const getNewsDetail = () => {
+const getNewsDetail = (): void => {
     const hashId = location.hash.substring(7);
-    const newsContent = getData(CONTENT_URL.replace('@id', hashId));
+    const newsContent = getData<NewsDetail>(CONTENT_URL.replace('@id', hashId));
     let template = `
         <div class="bg-gray-600 min-h-screen pb-8">
             <div class="bg-white text-xl">
@@ -165,40 +182,37 @@ const getNewsDetail = () => {
         return feed.id === Number(hashId);
     });
 
-    const makeComment = (comments, depth = 0) => {
-        const commentStr = [];
-        comments.map(comment => {
-            commentStr.push(`
-                <div style="margin-left: ${depth * 40}px;" class="mt-4">
-                    <div class="text-gray-400">
-                        <i class="fa fa-sort-up mr-2"></i>
-                        <strong>${comment.user}</strong> ${comment.time_ago}
-                    </div>
-                    <p class="text-gray-700">${comment.content}</p>
-                </div>
-            `);
-
-            if (comment.comments.length > 0) {
-                commentStr.push(makeComment(comment.comments, depth + 1));
-            }
-        });
-
-        return commentStr.join('');
-    };
-
     template = template.replace(
         '{{__comments__}}',
         makeComment(newsContent.comments)
     );
 
-    if (root) {
-        root.innerHTML = template;
-    } else {
-        console.log('Undefined root Element');
-    }
+    render(template);
 };
 
-const router = () => {
+const makeComment = (comments: NewsComment[]): string => {
+    const commentStr: string[] = [];
+
+    comments.map(comment => {
+        commentStr.push(`
+            <div style="margin-left: ${comment.level * 40}px;" class="mt-4">
+                <div class="text-gray-400">
+                    <i class="fa fa-sort-up mr-2"></i>
+                    <strong>${comment.user}</strong> ${comment.time_ago}
+                </div>
+                <p class="text-gray-700">${comment.content}</p>
+            </div>
+        `);
+
+        if (comment.comments.length > 0) {
+            commentStr.push(makeComment(comment.comments));
+        }
+    });
+
+    return commentStr.join('');
+};
+
+const router = (): void => {
     const routePath = location.hash;
 
     if (routePath === '') {
