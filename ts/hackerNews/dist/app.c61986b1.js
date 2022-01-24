@@ -118,7 +118,11 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   return newRequire;
 })({"app.ts":[function(require,module,exports) {
-"use strict";
+"use strict"; // type Store = {
+//     //type alias (대문자로 시작하는 컨벤션이 있음)
+//     currentPage: number;
+//     feeds: NewsFeeds[]; //NewsFeeds 데이터가 들어감
+// };
 
 var NEWS_URL = 'https://api.hnpwa.com/v0/news/1.json';
 var CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json';
