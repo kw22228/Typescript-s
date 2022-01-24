@@ -1,0 +1,5 @@
+### NEWS_URL
+GET https://api.hnpwa.com/v0/news/1.json HTTP/1.1
+
+### CONTENT_URL
+GET https://api.hnpwa.com/v0/item/30051054.json HTTP/1.1S
