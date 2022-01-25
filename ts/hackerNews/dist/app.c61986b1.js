@@ -124,104 +124,334 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 //     feeds: NewsFeeds[]; //NewsFeeds 데이터가 들어감
 // };
 
+function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
+
 var NEWS_URL = 'https://api.hnpwa.com/v0/news/1.json';
 var CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json';
 var root = document.getElementById('root');
 var store = {
   currentPage: 1,
   feeds: []
-}; // getData<NewsFeeds[]>(NEWS_URL) => 제네릭을 사용하여 유동적으로 type이 들어올 수 있도록 한다.
+}; //믹스인 기능 (targetClass에 baseClass배열의 class를 상속시킨다.)
 
-var getData = function getData(url) {
-  var ajax = new XMLHttpRequest();
-  ajax.open('GET', url, false);
-  ajax.send();
-  return JSON.parse(ajax.response);
-};
+function applyApiMixins(targetClass, baseClass) {
+  baseClass.forEach(function (baseClass) {
+    Object.getOwnPropertyNames(baseClass.prototype).forEach(function (name) {
+      var descriptor = Object.getOwnPropertyDescriptor(baseClass.prototype, name);
 
-var makeFeeds = function makeFeeds(feeds) {
-  var newFeeds = feeds.map(function (feed) {
-    return Object.assign(Object.assign({}, feed), {
-      read: false
+      if (descriptor) {
+        Object.defineProperty(targetClass.prototype, name, descriptor);
+      }
     });
   });
-  return newFeeds;
-};
+} // Api Classes
 
-var render = function render(html) {
-  if (root) {
-    root.innerHTML = html;
-  } else {
-    console.log('Undefined root Element');
-  }
-};
 
-var getNewsList = function getNewsList() {
-  var newsList = [];
-  var newsFeeds = store.feeds;
-
-  if (newsFeeds.length === 0) {
-    newsFeeds = store.feeds = makeFeeds(getData(NEWS_URL));
+var Api = /*#__PURE__*/function () {
+  function Api() {
+    _classCallCheck(this, Api);
   }
 
-  var list = 8;
-  var listCnt = newsFeeds.length;
-  var maxList = store.currentPage * list > listCnt ? listCnt : store.currentPage * list;
-  var maxPage = Math.ceil(listCnt / list);
-  var template = "\n        <div class=\"bg-gray-600 min-h-screen\">\n            <div class=\"bg-white text-xl\">\n                <div class=\"mx-auto px-4\">\n                    <div class=\"flex justify-between items-center py-6\">\n                        <div class=\"flex justify-start\">\n                            <h1 class=\"font-extrabold\">\n                                <a href=\"#\">Hacker News</a>\n                            </h1>\n                        </div>\n                        <div class=\"items-center justify-end\">\n                            <a href=\"#/page/{{__prev_page__}}\" class=\"text-gray-500\">\n                                Previous\n                            </a>\n                            <a href=\"#/page/{{__next_page__}}\" class=\"text-gray-500 ml-4\">\n                                Next\n                            </a>\n                        </div>\n                    </div>\n                </div>\n            </div>\n            <div class=\"p-4 text-2xl text-gray-700\">\n                {{__news_list__}}\n            </div>\n        </div>\n    ";
+  _createClass(Api, [{
+    key: "getRequest",
+    value: //외부에서 hint가 나오지않음 (protected)
+    function getRequest(url) {
+      var ajax = new XMLHttpRequest();
+      ajax.open('GET', url, false);
+      ajax.send();
+      return JSON.parse(ajax.response);
+    }
+  }]);
 
-  for (var i = (store.currentPage - 1) * list; i < maxList; i++) {
-    newsList.push("\n        <div class=\"p-6 ".concat(!newsFeeds[i].read ? 'bg-white' : 'bg-green-500', " mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100\">\n            <div class=\"flex\">\n            <div class=\"flex-auto\">\n                <a href=\"#/show/").concat(newsFeeds[i].id, "\">").concat(newsFeeds[i].title, "</a>  \n            </div>\n            <div class=\"text-center text-sm\">\n                <div class=\"w-10 text-white bg-green-300 rounded-lg px-0 py-2\">").concat(newsFeeds[i].comments_count, "</div>\n            </div>\n            </div>\n            <div class=\"flex mt-3\">\n            <div class=\"grid grid-cols-3 text-sm text-gray-500\">\n                <div><i class=\"fas fa-user mr-1\"></i>").concat(newsFeeds[i].user, "</div>\n                <div><i class=\"fas fa-heart mr-1\"></i>").concat(newsFeeds[i].points, "</div>\n                <div><i class=\"far fa-clock mr-1\"></i>").concat(newsFeeds[i].time_ago, "</div>\n            </div>  \n            </div>\n        </div>    \n        "));
+  return Api;
+}();
+
+var NewsFeedsApi = /*#__PURE__*/function () {
+  function NewsFeedsApi() {
+    _classCallCheck(this, NewsFeedsApi);
   }
 
-  template = template.replace('{{__news_list__}}', newsList.join(''));
-  template = template.replace('{{__prev_page__}}', String(store.currentPage > 1 ? store.currentPage - 1 : 1));
-  template = template.replace('{{__next_page__}}', String(store.currentPage < maxPage ? store.currentPage + 1 : maxPage));
-  render(template);
-};
+  _createClass(NewsFeedsApi, [{
+    key: "getData",
+    value: function getData() {
+      return this.getRequest(NEWS_URL);
+    }
+  }]);
 
-var getNewsDetail = function getNewsDetail() {
-  var hashId = location.hash.substring(7);
-  var newsContent = getData(CONTENT_URL.replace('@id', hashId));
-  var template = "\n        <div class=\"bg-gray-600 min-h-screen pb-8\">\n            <div class=\"bg-white text-xl\">\n                <div class=\"mx-auto px-4\">\n                <div class=\"flex justify-between items-center py-6\">\n                    <div class=\"flex justify-start\">\n                        <h1 class=\"font-extrabold\">\n                            <a href=\"#\">Hacker News</a>\n                        </h1>\n                    </div>\n                    <div class=\"items-center justify-end\">\n                        <a href=\"#/page/".concat(store.currentPage, "\" class=\"text-gray-500\">\n                            <i class=\"fa fa-times\"></i>\n                        </a>\n                    </div>\n                </div>\n                </div>\n            </div>\n\n            <div class=\"h-full border rounded-xl bg-white m-6 p-4 \">\n                <h2>").concat(newsContent.title, "</h2>\n                <div class=\"text-gray-400 h-20\">\n                ").concat(newsContent.content, "\n                </div>\n\n                {{__comments__}}\n\n            </div>\n        </div>\n    ");
-  store.feeds.find(function (feed) {
-    if (feed.id === Number(hashId)) {
-      feed.read = true;
+  return NewsFeedsApi;
+}();
+
+var NewsDetailApi = /*#__PURE__*/function () {
+  function NewsDetailApi() {
+    _classCallCheck(this, NewsDetailApi);
+  }
+
+  _createClass(NewsDetailApi, [{
+    key: "getData",
+    value: function getData(id) {
+      return this.getRequest(CONTENT_URL.replace('@id', id));
+    }
+  }]);
+
+  return NewsDetailApi;
+}(); //View Classes
+
+
+var View = /*#__PURE__*/function () {
+  function View(rootId, template) {
+    _classCallCheck(this, View);
+
+    var rootElement = document.getElementById(rootId);
+
+    if (!rootElement) {
+      throw 'Undefined root Element';
     }
 
-    return feed.id === Number(hashId);
-  });
-  template = template.replace('{{__comments__}}', makeComment(newsContent.comments));
-  render(template);
-};
-
-var makeComment = function makeComment(comments) {
-  var commentStr = [];
-  comments.map(function (comment) {
-    commentStr.push("\n            <div style=\"margin-left: ".concat(comment.level * 40, "px;\" class=\"mt-4\">\n                <div class=\"text-gray-400\">\n                    <i class=\"fa fa-sort-up mr-2\"></i>\n                    <strong>").concat(comment.user, "</strong> ").concat(comment.time_ago, "\n                </div>\n                <p class=\"text-gray-700\">").concat(comment.content, "</p>\n            </div>\n        "));
-
-    if (comment.comments.length > 0) {
-      commentStr.push(makeComment(comment.comments));
-    }
-  });
-  return commentStr.join('');
-};
-
-var router = function router() {
-  var routePath = location.hash;
-
-  if (routePath === '') {
-    getNewsList();
-  } else if (routePath.indexOf('#/page/') >= 0) {
-    store.currentPage = Number(routePath.substring(7));
-    getNewsList();
-  } else {
-    getNewsDetail();
+    this.root = rootElement;
+    this.template = template;
+    this.renderTemplate = template;
+    this.htmlArr = [];
   }
-};
 
-window.addEventListener('hashchange', router);
-router();
+  _createClass(View, [{
+    key: "updateView",
+    value: function updateView() {
+      this.root.innerHTML = this.renderTemplate;
+      this.renderTemplate = this.template;
+    }
+  }, {
+    key: "setTemplate",
+    value: function setTemplate(key, value) {
+      this.renderTemplate = this.renderTemplate.replace("{{__".concat(key, "__}}"), value);
+    }
+  }, {
+    key: "addHtml",
+    value: function addHtml(htmlStr) {
+      this.htmlArr.push(htmlStr);
+    }
+  }, {
+    key: "getHtml",
+    value: function getHtml() {
+      var snapshot = this.htmlArr.join('');
+      this.clearHtmlArr();
+      return snapshot;
+    }
+  }, {
+    key: "clearHtmlArr",
+    value: function clearHtmlArr() {
+      this.htmlArr = [];
+    }
+  }]);
+
+  return View;
+}();
+
+var Router = /*#__PURE__*/function () {
+  function Router() {
+    _classCallCheck(this, Router);
+
+    window.addEventListener('hashchange', this.route.bind(this));
+    this.routeTable = [];
+    this.defaultRoute = null;
+  }
+
+  _createClass(Router, [{
+    key: "setDefaultPage",
+    value: function setDefaultPage(page) {
+      this.defaultRoute = {
+        path: '',
+        page: page
+      };
+    }
+  }, {
+    key: "addRoutePath",
+    value: function addRoutePath(path, page) {
+      this.routeTable.push({
+        path: path,
+        page: page
+      });
+    }
+  }, {
+    key: "route",
+    value: function route() {
+      var routePath = location.hash;
+
+      if (routePath === '' && this.defaultRoute) {
+        this.defaultRoute.page.render();
+      }
+
+      var _iterator = _createForOfIteratorHelper(this.routeTable),
+          _step;
+
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var route = _step.value;
+
+          if (routePath.indexOf(route.path) >= 0) {
+            route.page.render();
+            break;
+          }
+        }
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
+    }
+  }]);
+
+  return Router;
+}();
+
+var NewsFeedView = /*#__PURE__*/function (_View) {
+  _inherits(NewsFeedView, _View);
+
+  var _super = _createSuper(NewsFeedView);
+
+  function NewsFeedView(rootId, list) {
+    var _this;
+
+    _classCallCheck(this, NewsFeedView);
+
+    var template = "\n        <div class=\"bg-gray-600 min-h-screen\">\n            <div class=\"bg-white text-xl\">\n                <div class=\"mx-auto px-4\">\n                    <div class=\"flex justify-between items-center py-6\">\n                        <div class=\"flex justify-start\">\n                            <h1 class=\"font-extrabold\">\n                                <a href=\"#\">Hacker News</a>\n                            </h1>\n                        </div>\n                        <div class=\"items-center justify-end\">\n                            <a href=\"#/page/{{__prev_page__}}\" class=\"text-gray-500\">\n                                Previous\n                            </a>\n                            <a href=\"#/page/{{__next_page__}}\" class=\"text-gray-500 ml-4\">\n                                Next\n                            </a>\n                        </div>\n                    </div>\n                </div>\n            </div>\n            <div class=\"p-4 text-2xl text-gray-700\">\n                {{__news_list__}}\n            </div>\n        </div>\n         ";
+    _this = _super.call(this, rootId, template);
+    _this.api = new NewsFeedsApi();
+    _this.feeds = store.feeds;
+    _this.list = list;
+
+    if (_this.feeds.length === 0) {
+      _this.feeds = store.feeds = _this.api.getData();
+
+      _this.makeFeeds();
+    }
+
+    return _this;
+  }
+
+  _createClass(NewsFeedView, [{
+    key: "makeFeeds",
+    value: function makeFeeds() {
+      var newFeeds = this.feeds.map(function (feed) {
+        return Object.assign(Object.assign({}, feed), {
+          read: false
+        });
+      });
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      store.currentPage = Number(location.hash.substring(7) || 1);
+      var listCnt = this.feeds.length;
+      var maxList = store.currentPage * this.list > listCnt ? listCnt : store.currentPage * this.list;
+      var maxPage = Math.ceil(listCnt / this.list);
+
+      for (var i = (store.currentPage - 1) * this.list; i < maxList; i++) {
+        var _this$feeds$i = this.feeds[i],
+            id = _this$feeds$i.id,
+            title = _this$feeds$i.title,
+            comments_count = _this$feeds$i.comments_count,
+            points = _this$feeds$i.points,
+            time_ago = _this$feeds$i.time_ago,
+            user = _this$feeds$i.user,
+            read = _this$feeds$i.read;
+        this.addHtml("\n        <div class=\"p-6 ".concat(!read ? 'bg-white' : 'bg-green-500', " mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100\">\n            <div class=\"flex\">\n            <div class=\"flex-auto\">\n                <a href=\"#/show/").concat(id, "\">").concat(title, "</a>  \n            </div>\n            <div class=\"text-center text-sm\">\n                <div class=\"w-10 text-white bg-green-300 rounded-lg px-0 py-2\">").concat(comments_count, "</div>\n            </div>\n            </div>\n            <div class=\"flex mt-3\">\n            <div class=\"grid grid-cols-3 text-sm text-gray-500\">\n                <div><i class=\"fas fa-user mr-1\"></i>").concat(user, "</div>\n                <div><i class=\"fas fa-heart mr-1\"></i>").concat(points, "</div>\n                <div><i class=\"far fa-clock mr-1\"></i>").concat(time_ago, "</div>\n            </div>  \n            </div>\n        </div>    \n        "));
+      }
+
+      this.setTemplate('news_list', this.getHtml());
+      this.setTemplate('prev_page', String(store.currentPage > 1 ? store.currentPage - 1 : 1));
+      this.setTemplate('next_page', String(store.currentPage < maxPage ? store.currentPage + 1 : maxPage));
+      this.updateView();
+    }
+  }]);
+
+  return NewsFeedView;
+}(View);
+
+var NewsDetailView = /*#__PURE__*/function (_View2) {
+  _inherits(NewsDetailView, _View2);
+
+  var _super2 = _createSuper(NewsDetailView);
+
+  function NewsDetailView(rootId) {
+    _classCallCheck(this, NewsDetailView);
+
+    var template = "\n        <div class=\"bg-gray-600 min-h-screen pb-8\">\n            <div class=\"bg-white text-xl\">\n                <div class=\"mx-auto px-4\">\n                <div class=\"flex justify-between items-center py-6\">\n                    <div class=\"flex justify-start\">\n                        <h1 class=\"font-extrabold\">\n                            <a href=\"#\">Hacker News</a>\n                        </h1>\n                    </div>\n                    <div class=\"items-center justify-end\">\n                        <a href=\"#/page/{{__currentPage__}}\" class=\"text-gray-500\">\n                            <i class=\"fa fa-times\"></i>\n                        </a>\n                    </div>\n                </div>\n                </div>\n            </div>\n\n            <div class=\"h-full border rounded-xl bg-white m-6 p-4 \">\n                <h2>{{__title__}}</h2>\n                <div class=\"text-gray-400 h-20\">\n                {{__content__}}\n                </div>\n\n                {{__comments__}}\n\n            </div>\n        </div>\n        ";
+    return _super2.call(this, rootId, template);
+  }
+
+  _createClass(NewsDetailView, [{
+    key: "makeComment",
+    value: function makeComment(comments) {
+      var _this2 = this;
+
+      comments.map(function (comment) {
+        _this2.addHtml("\n                <div style=\"margin-left: ".concat(comment.level * 40, "px;\" class=\"mt-4\">\n                    <div class=\"text-gray-400\">\n                        <i class=\"fa fa-sort-up mr-2\"></i>\n                        <strong>").concat(comment.user, "</strong> ").concat(comment.time_ago, "\n                    </div>\n                    <p class=\"text-gray-700\">").concat(comment.content, "</p>\n                </div>\n            "));
+
+        if (comment.comments.length > 0) {
+          _this2.addHtml(_this2.makeComment(comment.comments));
+        }
+      });
+      return this.getHtml();
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      var hashId = location.hash.substring(7);
+      var api = new NewsDetailApi();
+      var newsDetail = api.getData(hashId);
+      store.feeds.find(function (feed) {
+        if (feed.id === Number(hashId)) {
+          feed.read = true;
+        }
+
+        return feed.id === Number(hashId);
+      });
+      this.setTemplate('currentPage', String(store.currentPage));
+      this.setTemplate('title', newsDetail.title);
+      this.setTemplate('content', newsDetail.content);
+      this.setTemplate('comments', this.makeComment(newsDetail.comments));
+      this.updateView();
+    }
+  }]);
+
+  return NewsDetailView;
+}(View);
+
+applyApiMixins(NewsFeedsApi, [Api]);
+applyApiMixins(NewsDetailApi, [Api]);
+var router = new Router();
+var newsFeedView = new NewsFeedView('root', 8);
+var newsDetailView = new NewsDetailView('root');
+router.setDefaultPage(newsFeedView);
+router.addRoutePath('/page/', newsFeedView);
+router.addRoutePath('/show/', newsDetailView);
+router.route();
 },{}],"../../../../../../AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -250,7 +480,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "57626" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54066" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
