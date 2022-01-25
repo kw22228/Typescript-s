@@ -69,10 +69,7 @@ interface NewsFeeds extends News {
 function applyApiMixins(targetClass: any, baseClass: any[]): void {
     baseClass.forEach(baseClass => {
         Object.getOwnPropertyNames(baseClass.prototype).forEach(name => {
-            const descriptor = Object.getOwnPropertyDescriptor(
-                baseClass.prototype,
-                name
-            );
+            const descriptor = Object.getOwnPropertyDescriptor(baseClass.prototype, name);
 
             if (descriptor) {
                 Object.defineProperty(targetClass.prototype, name, descriptor);
