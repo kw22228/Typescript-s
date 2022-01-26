@@ -109,10 +109,10 @@ class NewsDetailApi {
 
 //View Classes
 abstract class View {
-    template: string; //원본
-    renderTemplate: string;
-    root: HTMLElement;
-    htmlArr: string[];
+    private template: string; //원본
+    private renderTemplate: string;
+    private root: HTMLElement;
+    private htmlArr: string[];
 
     constructor(rootId: string, template: string) {
         const rootElement = document.getElementById(rootId);
@@ -127,27 +127,27 @@ abstract class View {
         this.htmlArr = [];
     }
 
-    updateView(): void {
+    protected updateView(): void {
         this.root.innerHTML = this.renderTemplate;
         this.renderTemplate = this.template;
     }
 
-    setTemplate(key: string, value: string): void {
+    protected setTemplate(key: string, value: string): void {
         this.renderTemplate = this.renderTemplate.replace(`{{__${key}__}}`, value);
     }
 
-    addHtml(htmlStr: string): void {
+    protected addHtml(htmlStr: string): void {
         this.htmlArr.push(htmlStr);
     }
 
-    getHtml(): string {
+    protected getHtml(): string {
         const snapshot: string = this.htmlArr.join('');
         this.clearHtmlArr();
 
         return snapshot;
     }
 
-    clearHtmlArr(): void {
+    private clearHtmlArr(): void {
         this.htmlArr = [];
     }
 
@@ -155,8 +155,8 @@ abstract class View {
 }
 
 class Router {
-    routeTable: RouteInfo[];
-    defaultRoute: RouteInfo | null;
+    private routeTable: RouteInfo[];
+    private defaultRoute: RouteInfo | null;
     constructor() {
         window.addEventListener('hashchange', this.route.bind(this));
 
@@ -194,9 +194,9 @@ class Router {
 }
 
 class NewsFeedView extends View {
-    api: NewsFeedsApi;
-    feeds: NewsFeeds[];
-    list: number;
+    private api: NewsFeedsApi;
+    private feeds: NewsFeeds[];
+    private list: number;
 
     constructor(rootId: string, list: number) {
         let template: string = `
@@ -237,7 +237,7 @@ class NewsFeedView extends View {
         }
     }
 
-    makeFeeds(): void {
+    private makeFeeds(): void {
         const newFeeds = this.feeds.map(feed => {
             return { ...feed, read: false };
         });
@@ -321,7 +321,7 @@ class NewsDetailView extends View {
         super(rootId, template);
     }
 
-    makeComment(comments: NewsComment[]): string {
+    private makeComment(comments: NewsComment[]): string {
         comments.map(comment => {
             this.addHtml(`
                 <div style="margin-left: ${comment.level * 40}px;" class="mt-4">
