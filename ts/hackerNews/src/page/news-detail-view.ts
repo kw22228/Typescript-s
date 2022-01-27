@@ -1,6 +1,6 @@
 import { NewsDetailApi } from '../core/api';
 import { CONTENT_URL } from '../config';
-import { NewsComment, NewsDetail, NewsFeeds } from '../types';
+import { NewsComment, NewsDetail, NewsFeeds, NewsStore } from '../types';
 import View from '../core/view';
 
 const template: string = `
@@ -35,8 +35,12 @@ const template: string = `
         `;
 
 export default class NewsDetailView extends View {
-    constructor(rootId: string) {
+    private store: NewsStore;
+
+    constructor(rootId: string, store: NewsStore) {
         super(rootId, template);
+
+        this.store = store;
     }
 
     private makeComment(comments: NewsComment[]): string {
@@ -64,15 +68,9 @@ export default class NewsDetailView extends View {
         const api = new NewsDetailApi(CONTENT_URL.replace('@id', hashId));
         const newsDetail: NewsDetail = api.getData(hashId);
 
-        window.store.feeds.find((feed: NewsFeeds) => {
-            if (feed.id === Number(hashId)) {
-                feed.read = true;
-            }
+        this.store.makeRead(Number(hashId));
 
-            return feed.id === Number(hashId);
-        });
-
-        this.setTemplate('currentPage', String(window.store.currentPage));
+        this.setTemplate('currentPage', this.store.currentPage.toString());
         this.setTemplate('title', newsDetail.title);
         this.setTemplate('content', newsDetail.content);
         this.setTemplate('comments', this.makeComment(newsDetail.comments));

@@ -1,5 +1,5 @@
 import View from '../core/view';
-import { NewsFeeds } from '../types';
+import { NewsFeeds, NewsStore } from '../types';
 import { NewsFeedsApi } from '../core/api';
 import { NEWS_URL } from '../config';
 
@@ -32,39 +32,33 @@ const template: string = `
 
 export default class NewsFeedView extends View {
     private api: NewsFeedsApi;
-    private feeds: NewsFeeds[];
     private list: number;
+    private store: NewsStore;
 
-    constructor(rootId: string, list: number) {
+    constructor(rootId: string, list: number, store: NewsStore) {
         super(rootId, template);
 
+        this.store = store;
         this.api = new NewsFeedsApi(NEWS_URL);
-        this.feeds = window.store.feeds;
         this.list = list;
 
-        if (this.feeds.length === 0) {
-            this.feeds = window.store.feeds = this.api.getData();
-            this.makeFeeds();
+        if (!this.store.hasFeed) {
+            this.store.setFeeds(this.api.getData());
         }
     }
 
-    private makeFeeds(): void {
-        const newFeeds = this.feeds.map(feed => {
-            return { ...feed, read: false };
-        });
-    }
-
     render(): void {
-        window.store.currentPage = Number(location.hash.substring(7) || 1);
-        const listCnt: number = this.feeds.length;
+        this.store.currentPage = Number(location.hash.substring(7) || 1);
+        const listCnt: number = this.store.numberOfFeed;
         const maxList: number =
-            window.store.currentPage * this.list > listCnt
+            this.store.currentPage * this.list > listCnt
                 ? listCnt
-                : window.store.currentPage * this.list;
+                : this.store.currentPage * this.list;
         const maxPage: number = Math.ceil(listCnt / this.list);
 
-        for (let i = (window.store.currentPage - 1) * this.list; i < maxList; i++) {
-            const { id, title, comments_count, points, time_ago, user, read } = this.feeds[i];
+        for (let i = (this.store.currentPage - 1) * this.list; i < maxList; i++) {
+            const { id, title, comments_count, points, time_ago, user, read } =
+                this.store.getFeed(i);
             this.addHtml(`
         <div class="p-6 ${
             !read ? 'bg-white' : 'bg-green-500'
@@ -88,14 +82,8 @@ export default class NewsFeedView extends View {
         `);
         }
         this.setTemplate('news_list', this.getHtml());
-        this.setTemplate(
-            'prev_page',
-            String(window.store.currentPage > 1 ? window.store.currentPage - 1 : 1)
-        );
-        this.setTemplate(
-            'next_page',
-            String(window.store.currentPage < maxPage ? window.store.currentPage + 1 : maxPage)
-        );
+        this.setTemplate('prev_page', String(this.store.prevPage));
+        this.setTemplate('next_page', String(this.store.nextPage));
 
         this.updateView();
     }
