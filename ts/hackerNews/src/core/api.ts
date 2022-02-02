@@ -27,6 +27,12 @@ export class Api {
                 console.log('data fetching error');
             });
     }
+
+    protected async request<AjaxResponse>(): Promise<AjaxResponse> {
+        const response = await fetch(this.url);
+
+        return (await response.json()) as AjaxResponse;
+    }
 }
 
 export class NewsFeedsApi extends Api {
@@ -41,6 +47,10 @@ export class NewsFeedsApi extends Api {
     getDataWithPromise(callback: (data: NewsFeeds[]) => void): void {
         return this.getRequestWithPromise<NewsFeeds[]>(callback);
     }
+
+    async getData(): Promise<NewsFeeds[]> {
+        return this.request<NewsFeeds[]>();
+    }
 }
 
 export class NewsDetailApi extends Api {
@@ -54,5 +64,9 @@ export class NewsDetailApi extends Api {
 
     getDataWithPromise(callback: (data: NewsDetail) => void): void {
         return this.getRequestWithPromise<NewsDetail>(callback);
+    }
+
+    async getData(): Promise<NewsDetail> {
+        return this.request<NewsDetail>();
     }
 }

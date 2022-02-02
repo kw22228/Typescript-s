@@ -43,20 +43,12 @@ export default class NewsFeedView extends View {
         this.list = list;
     }
 
-    render = (page: string = '1'): void => {
-        this.store.currentPage = Number(page);
-
+    render = async (page: string = '1'): Promise<void> => {
         if (!this.store.hasFeed) {
-            this.api.getDataWithPromise((feeds: NewsFeeds[]) => {
-                this.store.setFeeds(feeds);
-                this.renderView();
-            });
+            this.store.setFeeds(await this.api.getData());
         }
 
-        this.renderView();
-    };
-
-    renderView = () => {
+        this.store.currentPage = Number(page);
         const listCnt: number = this.store.numberOfFeed;
         const maxList: number =
             this.store.currentPage * this.list > listCnt
@@ -91,7 +83,10 @@ export default class NewsFeedView extends View {
         }
         this.setTemplate('news_list', this.getHtml());
         this.setTemplate('prev_page', String(this.store.prevPage));
-        this.setTemplate('next_page', String(this.store.nextPage));
+        this.setTemplate(
+            'next_page',
+            String(this.store.currentPage == maxPage ? this.store.currentPage : this.store.nextPage)
+        );
 
         this.updateView();
     };
