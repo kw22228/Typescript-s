@@ -193,7 +193,7 @@ var Router = /*#__PURE__*/function () {
               var parseParams = routePath.match(routeInfo.params);
 
               if (parseParams) {
-                routeInfo.page.render.apply(null, [parseParams[1]]);
+                routeInfo.page.render.call(null, parseParams[1]);
               }
             } else {
               routeInfo.page.render();
@@ -248,17 +248,31 @@ var Api = /*#__PURE__*/function () {
   function Api(url) {
     _classCallCheck(this, Api);
 
-    this.ajax = new XMLHttpRequest();
+    this.xhr = new XMLHttpRequest();
     this.url = url;
   } //외부에서 hint가 나오지않음 (protected)
 
 
   _createClass(Api, [{
-    key: "getRequest",
-    value: function getRequest() {
-      this.ajax.open('GET', this.url, false);
-      this.ajax.send();
-      return JSON.parse(this.ajax.response);
+    key: "getRequestWithXHR",
+    value: function getRequestWithXHR(callback) {
+      var _this = this;
+
+      this.xhr.open('GET', this.url);
+      this.xhr.addEventListener('load', function () {
+        callback(JSON.parse(_this.xhr.response));
+      });
+      this.xhr.send();
+      return;
+    }
+  }, {
+    key: "getRequestWithPromise",
+    value: function getRequestWithPromise(callback) {
+      fetch(this.url).then(function (res) {
+        return res.json();
+      }).then(callback).catch(function () {
+        console.log('data fetching error');
+      });
     }
   }]);
 
@@ -272,16 +286,21 @@ var NewsFeedsApi = /*#__PURE__*/function (_Api) {
 
   var _super = _createSuper(NewsFeedsApi);
 
-  function NewsFeedsApi() {
+  function NewsFeedsApi(url) {
     _classCallCheck(this, NewsFeedsApi);
 
-    return _super.apply(this, arguments);
+    return _super.call(this, url);
   }
 
   _createClass(NewsFeedsApi, [{
-    key: "getData",
-    value: function getData() {
-      return this.getRequest();
+    key: "getDataWithXHR",
+    value: function getDataWithXHR(callback) {
+      return this.getRequestWithXHR(callback);
+    }
+  }, {
+    key: "getDataWithPromise",
+    value: function getDataWithPromise(callback) {
+      return this.getRequestWithPromise(callback);
     }
   }]);
 
@@ -295,16 +314,21 @@ var NewsDetailApi = /*#__PURE__*/function (_Api2) {
 
   var _super2 = _createSuper(NewsDetailApi);
 
-  function NewsDetailApi() {
+  function NewsDetailApi(url) {
     _classCallCheck(this, NewsDetailApi);
 
-    return _super2.apply(this, arguments);
+    return _super2.call(this, url);
   }
 
   _createClass(NewsDetailApi, [{
-    key: "getData",
-    value: function getData(id) {
-      return this.getRequest();
+    key: "getDataWithXHR",
+    value: function getDataWithXHR(callback) {
+      return this.getRequestWithXHR(callback);
+    }
+  }, {
+    key: "getDataWithPromise",
+    value: function getDataWithPromise(callback) {
+      return this.getRequestWithPromise(callback);
     }
   }]);
 
@@ -438,6 +462,28 @@ var NewsDetailView = /*#__PURE__*/function (_view_1$default) {
     _classCallCheck(this, NewsDetailView);
 
     _this = _super.call(this, rootId, template);
+
+    _this.render = function (id) {
+      var api = new api_1.NewsDetailApi(config_1.CONTENT_URL.replace('@id', id));
+      api.getDataWithPromise(function (data) {
+        var title = data.title,
+            content = data.content,
+            comments = data.comments;
+
+        _this.store.makeRead(Number(id));
+
+        _this.setTemplate('currentPage', _this.store.currentPage.toString());
+
+        _this.setTemplate('title', title);
+
+        _this.setTemplate('content', content);
+
+        _this.setTemplate('comments', _this.makeComment(comments));
+
+        _this.updateView();
+      });
+    };
+
     _this.store = store;
     return _this;
   }
@@ -456,19 +502,6 @@ var NewsDetailView = /*#__PURE__*/function (_view_1$default) {
       });
       return this.getHtml();
     }
-  }, {
-    key: "render",
-    value: function render() {
-      var hashId = location.hash.substring(7);
-      var api = new api_1.NewsDetailApi(config_1.CONTENT_URL.replace('@id', hashId));
-      var newsDetail = api.getData(hashId);
-      this.store.makeRead(Number(hashId));
-      this.setTemplate('currentPage', this.store.currentPage.toString());
-      this.setTemplate('title', newsDetail.title);
-      this.setTemplate('content', newsDetail.content);
-      this.setTemplate('comments', this.makeComment(newsDetail.comments));
-      this.updateView();
-    }
   }]);
 
   return NewsDetailView;
@@ -480,11 +513,11 @@ exports.default = NewsDetailView;
 
 function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
 
@@ -529,27 +562,29 @@ var NewsFeedView = /*#__PURE__*/function (_view_1$default) {
     _classCallCheck(this, NewsFeedView);
 
     _this = _super.call(this, rootId, template);
-    _this.store = store;
-    _this.api = new api_1.NewsFeedsApi(config_1.NEWS_URL);
-    _this.list = list;
 
-    if (!_this.store.hasFeed) {
-      _this.store.setFeeds(_this.api.getData());
-    }
+    _this.render = function () {
+      var page = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '1';
+      _this.store.currentPage = Number(page);
 
-    return _this;
-  }
+      if (!_this.store.hasFeed) {
+        _this.api.getDataWithPromise(function (feeds) {
+          _this.store.setFeeds(feeds);
 
-  _createClass(NewsFeedView, [{
-    key: "render",
-    value: function render() {
-      this.store.currentPage = Number(location.hash.substring(7) || 1);
-      var listCnt = this.store.numberOfFeed;
-      var maxList = this.store.currentPage * this.list > listCnt ? listCnt : this.store.currentPage * this.list;
-      var maxPage = Math.ceil(listCnt / this.list);
+          _this.renderView();
+        });
+      }
 
-      for (var i = (this.store.currentPage - 1) * this.list; i < maxList; i++) {
-        var _this$store$getFeed = this.store.getFeed(i),
+      _this.renderView();
+    };
+
+    _this.renderView = function () {
+      var listCnt = _this.store.numberOfFeed;
+      var maxList = _this.store.currentPage * _this.list > listCnt ? listCnt : _this.store.currentPage * _this.list;
+      var maxPage = Math.ceil(listCnt / _this.list);
+
+      for (var i = (_this.store.currentPage - 1) * _this.list; i < maxList; i++) {
+        var _this$store$getFeed = _this.store.getFeed(i),
             id = _this$store$getFeed.id,
             title = _this$store$getFeed.title,
             comments_count = _this$store$getFeed.comments_count,
@@ -558,17 +593,25 @@ var NewsFeedView = /*#__PURE__*/function (_view_1$default) {
             user = _this$store$getFeed.user,
             read = _this$store$getFeed.read;
 
-        this.addHtml("\n        <div class=\"p-6 ".concat(!read ? 'bg-white' : 'bg-green-500', " mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100\">\n            <div class=\"flex\">\n            <div class=\"flex-auto\">\n                <a href=\"#/show/").concat(id, "\">").concat(title, "</a>  \n            </div>\n            <div class=\"text-center text-sm\">\n                <div class=\"w-10 text-white bg-green-300 rounded-lg px-0 py-2\">").concat(comments_count, "</div>\n            </div>\n            </div>\n            <div class=\"flex mt-3\">\n            <div class=\"grid grid-cols-3 text-sm text-gray-500\">\n                <div><i class=\"fas fa-user mr-1\"></i>").concat(user, "</div>\n                <div><i class=\"fas fa-heart mr-1\"></i>").concat(points, "</div>\n                <div><i class=\"far fa-clock mr-1\"></i>").concat(time_ago, "</div>\n            </div>  \n            </div>\n        </div>    \n        "));
+        _this.addHtml("\n        <div class=\"p-6 ".concat(!read ? 'bg-white' : 'bg-green-500', " mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100\">\n            <div class=\"flex\">\n            <div class=\"flex-auto\">\n                <a href=\"#/show/").concat(id, "\">").concat(title, "</a>  \n            </div>\n            <div class=\"text-center text-sm\">\n                <div class=\"w-10 text-white bg-green-300 rounded-lg px-0 py-2\">").concat(comments_count, "</div>\n            </div>\n            </div>\n            <div class=\"flex mt-3\">\n            <div class=\"grid grid-cols-3 text-sm text-gray-500\">\n                <div><i class=\"fas fa-user mr-1\"></i>").concat(user, "</div>\n                <div><i class=\"fas fa-heart mr-1\"></i>").concat(points, "</div>\n                <div><i class=\"far fa-clock mr-1\"></i>").concat(time_ago, "</div>\n            </div>  \n            </div>\n        </div>    \n        "));
       }
 
-      this.setTemplate('news_list', this.getHtml());
-      this.setTemplate('prev_page', String(this.store.prevPage));
-      this.setTemplate('next_page', String(this.store.nextPage));
-      this.updateView();
-    }
-  }]);
+      _this.setTemplate('news_list', _this.getHtml());
 
-  return NewsFeedView;
+      _this.setTemplate('prev_page', String(_this.store.prevPage));
+
+      _this.setTemplate('next_page', String(_this.store.nextPage));
+
+      _this.updateView();
+    };
+
+    _this.store = store;
+    _this.api = new api_1.NewsFeedsApi(config_1.NEWS_URL);
+    _this.list = list;
+    return _this;
+  }
+
+  return _createClass(NewsFeedView);
 }(view_1.default);
 
 exports.default = NewsFeedView;
@@ -744,7 +787,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "65331" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55373" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

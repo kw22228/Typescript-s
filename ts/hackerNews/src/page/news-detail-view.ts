@@ -1,6 +1,6 @@
 import { NewsDetailApi } from '../core/api';
 import { CONTENT_URL } from '../config';
-import { NewsComment, NewsDetail, NewsFeeds, NewsStore } from '../types';
+import { NewsComment, NewsDetail, NewsStore } from '../types';
 import View from '../core/view';
 
 const template: string = `
@@ -63,18 +63,19 @@ export default class NewsDetailView extends View {
         return this.getHtml();
     }
 
-    render() {
-        const hashId = location.hash.substring(7);
-        const api = new NewsDetailApi(CONTENT_URL.replace('@id', hashId));
-        const newsDetail: NewsDetail = api.getData(hashId);
+    render = (id: string): void => {
+        const api = new NewsDetailApi(CONTENT_URL.replace('@id', id));
+        api.getDataWithPromise((data: NewsDetail) => {
+            const { title, content, comments } = data;
 
-        this.store.makeRead(Number(hashId));
+            this.store.makeRead(Number(id));
 
-        this.setTemplate('currentPage', this.store.currentPage.toString());
-        this.setTemplate('title', newsDetail.title);
-        this.setTemplate('content', newsDetail.content);
-        this.setTemplate('comments', this.makeComment(newsDetail.comments));
+            this.setTemplate('currentPage', this.store.currentPage.toString());
+            this.setTemplate('title', title);
+            this.setTemplate('content', content);
+            this.setTemplate('comments', this.makeComment(comments));
 
-        this.updateView();
-    }
+            this.updateView();
+        });
+    };
 }

@@ -42,5 +42,5 @@ export default abstract class View {
         this.htmlArr = [];
     }
 
-    abstract render(): void;
+    abstract render(...params: string[]): void;
 }

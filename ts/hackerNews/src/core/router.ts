@@ -50,12 +50,11 @@ export default class Router {
                     const parseParams = routePath.match(routeInfo.params);
 
                     if (parseParams) {
-                        routeInfo.page.render.apply(null, [parseParams[1]]);
+                        routeInfo.page.render.call(null, parseParams[1]);
                     }
                 } else {
                     routeInfo.page.render();
                 }
-
                 return;
             }
         }

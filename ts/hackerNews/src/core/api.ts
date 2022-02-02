@@ -1,29 +1,58 @@
 import { NewsFeeds, NewsDetail } from '../types';
+
 export class Api {
-    ajax: XMLHttpRequest;
+    xhr: XMLHttpRequest;
     url: string;
 
     constructor(url: string) {
-        this.ajax = new XMLHttpRequest();
+        this.xhr = new XMLHttpRequest();
         this.url = url;
     }
     //외부에서 hint가 나오지않음 (protected)
-    protected getRequest<AjaxResponse>(): AjaxResponse {
-        this.ajax.open('GET', this.url, false);
-        this.ajax.send();
+    protected getRequestWithXHR<AjaxResponse>(callback: (data: AjaxResponse) => void): void {
+        this.xhr.open('GET', this.url);
+        this.xhr.addEventListener('load', () => {
+            callback(JSON.parse(this.xhr.response) as AjaxResponse);
+        });
+        this.xhr.send();
 
-        return JSON.parse(this.ajax.response);
+        return;
+    }
+
+    protected getRequestWithPromise<AjaxResponse>(callback: (data: AjaxResponse) => void): void {
+        fetch(this.url)
+            .then(res => res.json())
+            .then(callback)
+            .catch(() => {
+                console.log('data fetching error');
+            });
     }
 }
 
 export class NewsFeedsApi extends Api {
-    getData(): NewsFeeds[] {
-        return this.getRequest<NewsFeeds[]>();
+    constructor(url: string) {
+        super(url);
+    }
+
+    getDataWithXHR(callback: (data: NewsFeeds[]) => void): void {
+        return this.getRequestWithXHR<NewsFeeds[]>(callback);
+    }
+
+    getDataWithPromise(callback: (data: NewsFeeds[]) => void): void {
+        return this.getRequestWithPromise<NewsFeeds[]>(callback);
     }
 }
 
 export class NewsDetailApi extends Api {
-    getData(id: string): NewsDetail {
-        return this.getRequest<NewsDetail>();
+    constructor(url: string) {
+        super(url);
+    }
+
+    getDataWithXHR(callback: (data: NewsDetail) => void): void {
+        return this.getRequestWithXHR<NewsDetail>(callback);
+    }
+
+    getDataWithPromise(callback: (data: NewsDetail) => void): void {
+        return this.getRequestWithPromise<NewsDetail>(callback);
     }
 }
