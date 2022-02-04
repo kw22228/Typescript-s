@@ -11,7 +11,7 @@ declare global {
 }
 
 const data = {
-    title: 'Typescript Sign up',
+    title: 'Typescript & Javascript CSR Sign up !!',
 };
 const app = new App('#root', data);
 app.render();
