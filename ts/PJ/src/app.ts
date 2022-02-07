@@ -1,6 +1,6 @@
 import template from './app.template';
 import { AnyObject } from './types';
-import TextField from './views/text-field';
+import { TextField, PasswordField } from './views/';
 export default class App {
     template = template;
     container: HTMLElement;
@@ -40,9 +40,16 @@ export default class App {
             require: true,
         });
 
+        const passwordField = new PasswordField('#required-fields', {
+            id: 'password',
+            label: '비밀번호',
+            placeholder: '비밀번호를 입력해주세요.',
+        });
+
         this.fields.push(nameField);
         this.fields.push(idField);
         this.fields.push(emailField);
+        this.fields.push(passwordField);
     };
 
     render = () => {
