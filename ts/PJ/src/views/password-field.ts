@@ -68,15 +68,15 @@ export default class PasswordField {
             strongLevel++;
         }
 
-        if(this.data.text!. length > 12){
+        if (this.data.text!.length > 12) {
             strongLevel++;
         }
 
-        if(/[!@#$%^&*()]/.test(this.data.text!) {
+        if (/[!@#$%^&*()]/.test(this.data.text!)) {
             strongLevel++;
         }
 
-        if(/\d/.test(this.data.text!)){
+        if (/\d/.test(this.data.text!)) {
             strongLevel++;
         }
 
