@@ -1,3 +1,5 @@
+import { RequireRule } from '../constant';
+import { ValidateRule } from '../types';
 import template from './password-field.template';
 
 enum StrongLevel {
@@ -30,13 +32,90 @@ const DefaultProps: Props = {
     placeholder: '',
     strong: StrongLevel.None,
 };
+
 export default class PasswordField {
     private template = template;
     private container: string;
     private data: Props;
+    private updated: boolean = false;
+    private validateRules: ValidateRule[] = [];
 
     constructor(container: string, data: Props) {
         this.container = container;
         this.data = { ...DefaultProps, ...data };
+
+        if (this.data.require) {
+            this.addValidateRule(RequireRule);
+        }
     }
+
+    private attachEventHandler = () => {
+        document.querySelector(this.container)?.addEventListener('change', (e: Event) => {
+            const { value, id } = e.target as HTMLInputElement;
+
+            if (id === this.data.id) {
+                this.updated = true;
+                this.data.text = value;
+            }
+        });
+    };
+
+    private buildData = () => {
+        let strongLevel = -1;
+        const isInvalid: ValidateRule | null = this.validate();
+
+        if (this.data.text!.length > 0) {
+            strongLevel++;
+        }
+
+        if(this.data.text!. length > 12){
+            strongLevel++;
+        }
+
+        if(/[!@#$%^&*()]/.test(this.data.text!) {
+            strongLevel++;
+        }
+
+        if(/\d/.test(this.data.text!)){
+            strongLevel++;
+        }
+
+        return {
+            ...this.data,
+            updated: this.updated,
+            valid: this.updated ? !isInvalid : true,
+            strongMessage: strongLevel < 0 ? '' : StrongMessage[strongLevel],
+            strongLevel0: strongLevel >= 1,
+            strongLevel1: strongLevel >= 2,
+            strongLevel2: strongLevel >= 3,
+            strongLevel3: strongLevel >= 4,
+        };
+    };
+
+    private validate = (): ValidateRule | null => {
+        const target = this.data.text ? this.data.text.trim() : '';
+
+        const invalidateRules = this.validateRules.filter(validateRule => {
+            return validateRule.rule.test(target) !== validateRule.match;
+        });
+
+        return invalidateRules.length > 0 ? invalidateRules[0] : null;
+    };
+
+    addValidateRule = (rule: ValidateRule) => {
+        this.validateRules.push(rule);
+    };
+
+    render = (append: boolean = false) => {
+        const container = document.querySelector(this.container) as HTMLElement;
+
+        if (append) {
+            const div = document.createElement('div');
+            div.innerHTML = this.template(this.buildData());
+
+            container.appendChild(div.children[0]);
+        } else {
+            container.innerHTML = this.template(this.buildData());
+        }
+    };
 }
