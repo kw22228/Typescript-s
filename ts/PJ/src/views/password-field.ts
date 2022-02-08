@@ -1,5 +1,6 @@
 import { RequireRule } from '../constant';
 import { ValidateRule } from '../types';
+import { nextTick } from '../utils';
 import template from './password-field.template';
 
 enum StrongLevel {
@@ -47,6 +48,8 @@ export default class PasswordField {
         if (this.data.require) {
             this.addValidateRule(RequireRule);
         }
+
+        nextTick(this.attachEventHandler);
     }
 
     private attachEventHandler = () => {
@@ -56,8 +59,18 @@ export default class PasswordField {
             if (id === this.data.id) {
                 this.updated = true;
                 this.data.text = value;
+                this.update();
             }
         });
+    };
+
+    private update = () => {
+        const container = document.querySelector(`#field-${this.data.id}`) as HTMLElement;
+        const div = document.createElement('div');
+
+        div.innerHTML = this.template(this.buildData());
+
+        container.innerHTML = div.children[0].innerHTML;
     };
 
     private buildData = () => {
