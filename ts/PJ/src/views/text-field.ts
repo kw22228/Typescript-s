@@ -87,6 +87,10 @@ export default class TextField {
         container.innerHTML = div.children[0].innerHTML;
     };
 
+    get isValid(): boolean {
+        return !this.validate();
+    }
+
     addValidateRule = (rule: ValidateRule) => {
         this.validateRules.push(rule);
     };

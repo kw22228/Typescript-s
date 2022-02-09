@@ -115,6 +115,10 @@ export default class PasswordField {
         return invalidateRules.length > 0 ? invalidateRules[0] : null;
     };
 
+    get isValid(): boolean {
+        return !this.validate();
+    }
+
     addValidateRule = (rule: ValidateRule) => {
         this.validateRules.push(rule);
     };
