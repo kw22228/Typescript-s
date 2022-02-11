@@ -45,6 +45,17 @@ export default class AddressField {
         });
     };
 
+    get name(): string {
+        return this.data.id;
+    }
+
+    get value(): string {
+        const container = document.querySelector(this.container) as HTMLElement;
+        const address2 = (container.querySelector('#address2') as HTMLInputElement)?.value;
+
+        return `${this.zipcode}|${this.address1} ${address2 || ''}`;
+    }
+
     get isValid(): boolean {
         return true;
     }

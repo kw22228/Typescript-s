@@ -114,6 +114,13 @@ export default class PasswordField {
 
         return invalidateRules.length > 0 ? invalidateRules[0] : null;
     };
+    get name(): string {
+        return this.data.id;
+    }
+
+    get value(): string {
+        return this.data.text || '';
+    }
 
     get isValid(): boolean {
         return !this.validate();

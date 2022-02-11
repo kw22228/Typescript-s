@@ -87,6 +87,14 @@ export default class TextField {
         container.innerHTML = div.children[0].innerHTML;
     };
 
+    get name(): string {
+        return this.data.id;
+    }
+
+    get value(): string {
+        return this.data.text || '';
+    }
+
     get isValid(): boolean {
         return !this.validate();
     }
