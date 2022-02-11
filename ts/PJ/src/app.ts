@@ -1,8 +1,7 @@
 import template from './app.template';
 import { CantContainWhitespace, CantStartNumber, MinimumLengthLimit } from './constant';
 import { AnyObject } from './types';
-import { TextField, PasswordField } from './views/';
-import AddressField from './views/address-field';
+import { TextField, PasswordField, AddressField } from './views/';
 export default class App {
     template = template;
     container: HTMLElement;
@@ -17,8 +16,7 @@ export default class App {
 
         this.init();
 
-        // setInterval(this.validFieldMonitor, 1000 / 30);
-        setTimeout(this.validFieldMonitor, 0);
+        setInterval(this.validFieldMonitor, 1000 / 30);
     }
 
     private init = () => {
@@ -94,6 +92,25 @@ export default class App {
             field.render(true);
         });
 
-        this.container.addEventListener('submit', (e: Event) => {});
+        this.container.addEventListener('submit', (e: Event) => {
+            e.preventDefault();
+
+            if (!this.active) return;
+
+            const submitData: AnyObject = this.fields
+                .map(field => {
+                    return {
+                        [field.name]: field.value,
+                    };
+                })
+                .reduce((pre, cur) => {
+                    return {
+                        ...pre,
+                        ...cur,
+                    };
+                });
+
+            console.log(submitData);
+        });
     };
 }
