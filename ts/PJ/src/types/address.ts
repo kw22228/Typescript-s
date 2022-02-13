@@ -4,3 +4,9 @@ export type DaumAddress = {
     roadAddress: string;
     sigunguCode: string;
 };
+
+export type Address = {
+    zip: string;
+    address1: string;
+    address2: string | '';
+};
