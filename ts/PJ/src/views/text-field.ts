@@ -67,16 +67,18 @@ export default class TextField {
         }
     };
 
-    private attachEvantHandler = () => {
-        document.querySelector(this.container)?.addEventListener('change', (e: Event) => {
-            const { id, value } = e.target as HTMLInputElement;
+    private onChange = (e: Event) => {
+        const { id, value } = e.target as HTMLInputElement;
 
-            if (id === this.data.id) {
-                this.updated = true;
-                this.data.text = value;
-                this.update();
-            }
-        });
+        if (id === this.data.id) {
+            this.updated = true;
+            this.data.text = value;
+            this.update();
+        }
+    };
+
+    private attachEvantHandler = () => {
+        document.querySelector(this.container)?.addEventListener('change', this.onChange);
     };
 
     private update = () => {

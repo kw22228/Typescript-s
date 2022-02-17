@@ -51,17 +51,18 @@ export default class PasswordField {
 
         nextTick(this.attachEventHandler);
     }
+    private onChange = (e: Event) => {
+        const { value, id } = e.target as HTMLInputElement;
+
+        if (id === this.data.id) {
+            this.updated = true;
+            this.data.text = value;
+            this.update();
+        }
+    };
 
     private attachEventHandler = () => {
-        document.querySelector(this.container)?.addEventListener('change', (e: Event) => {
-            const { value, id } = e.target as HTMLInputElement;
-
-            if (id === this.data.id) {
-                this.updated = true;
-                this.data.text = value;
-                this.update();
-            }
-        });
+        document.querySelector(this.container)?.addEventListener('change', this.onChange);
     };
 
     private update = () => {
