@@ -50,6 +50,7 @@ export default class TextField {
 
     private buildData = () => {
         const isInvalid: ValidateRule | null = this.validate();
+
         if (this.updated) {
             return {
                 ...this.data,
@@ -61,7 +62,7 @@ export default class TextField {
             return {
                 ...this.data,
                 updated: this.updated,
-                valid: true,
+                valid: true, //아무것도 입력하지 않았을 때
                 validateMessage: '',
             };
         }
