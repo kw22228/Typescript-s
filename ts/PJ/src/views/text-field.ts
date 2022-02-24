@@ -91,10 +91,12 @@ export default class TextField {
     };
 
     get name(): string {
+        //name getter
         return this.data.id;
     }
 
     get value(): string {
+        // value getter
         return this.data.text || '';
     }
 

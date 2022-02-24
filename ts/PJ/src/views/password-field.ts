@@ -116,10 +116,12 @@ export default class PasswordField {
         return invalidateRules.length > 0 ? invalidateRules[0] : null;
     };
     get name(): string {
+        //name getter
         return this.data.id;
     }
 
     get value(): string {
+        //value getter
         return this.data.text || '';
     }
 
