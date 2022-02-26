@@ -20,6 +20,7 @@ export default class CoreField {
     }
 
     render = (append = false) => {
+        console.log('core render');
         const container = document.querySelector(this._container);
 
         if (append) {
