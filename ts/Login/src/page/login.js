@@ -15,8 +15,6 @@ export default class Login {
     }
 
     init = () => {
-        console.log('login initial');
-
         const idField = new TextField('#login-fields', {
             id: 'userid',
             label: '아이디',
@@ -37,8 +35,6 @@ export default class Login {
     };
 
     render = () => {
-        console.log('Login render');
-
         this._container.innerHTML = this._template({
             ...this._data,
         });

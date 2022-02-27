@@ -6,8 +6,6 @@ function router() {
     switch (path) {
         case '':
         case '#/login':
-            console.log('login page');
-
             const login = new Login('#root', {
                 //store,
                 title: 'JS & TS Login',

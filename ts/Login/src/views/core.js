@@ -1,7 +1,7 @@
 const DefaultProps = {
     id: '',
     text: '',
-    label: 'label',
+    label: '',
     type: 'text',
     placeholder: '',
     require: false,
@@ -19,8 +19,29 @@ export default class CoreField {
         this._data = { ...DefaultProps, ...data };
     }
 
+    addValidateRule = rule => {
+        this._validateRules.push(rule);
+    };
+
+    validate = () => {
+        const text = this._data.text ? this._data.text.trim() : '';
+
+        const invalidateRules = this._validateRules.filter(validateRule => {
+            return validateRule.rule.test(text) !== validateRule.match;
+        });
+
+        return invalidateRules.length > 0 ? invalidateRules[0] : null;
+    };
+
+    get name() {
+        return this._data.id;
+    }
+
+    get value() {
+        return this.data.text || '';
+    }
+
     render = (append = false) => {
-        console.log('core render');
         const container = document.querySelector(this._container);
 
         if (append) {

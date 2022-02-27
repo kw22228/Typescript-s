@@ -1,5 +1,5 @@
 const template = `
-<div class="mb-4">
+<div id="field-{{id}}" class="mb-4">
   <label class="block mb-2 text-sm font-bold text-gray-700" for="{{id}}">
     {{label}}
   </label>
@@ -8,6 +8,7 @@ const template = `
     id="{{id}}"
     name="{{id}}"
     type="{{type}}"
+    value="{{text}}"
     placeholder="{{placeholder}}"
     {{#if require}}required{{/if}} 
   />
