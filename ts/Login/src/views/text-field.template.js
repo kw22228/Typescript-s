@@ -12,6 +12,11 @@ const template = `
     placeholder="{{placeholder}}"
     {{#if require}}required{{/if}} 
   />
+  {{#unless valid}}
+  <div class="flex items-start mb-1">
+      <label class="block text-sm text-red-300" for="cus_email">{{validateMessage}}</label>
+  </div>
+  {{/unless}}
 </div>
 `;
 
