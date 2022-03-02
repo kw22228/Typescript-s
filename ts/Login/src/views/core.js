@@ -38,7 +38,7 @@ export default class CoreField {
     }
 
     get value() {
-        return this.data.text || '';
+        return this._data.text || '';
     }
 
     render = (append = false) => {
