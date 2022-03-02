@@ -10,6 +10,12 @@ app.use(express.static('dist'));
 app.use(morgan('dev'));
 app.use(urlencoded({ extended: false }));
 app.use(json());
+app.use((req, res, next) => {
+    res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+    res.header('Expires', '-1');
+    res.header('Pragma', 'no-cache');
+    next();
+});
 
 app.get('/api/user/:id', (req, res) => {
     if (!req.headers['token']) {
@@ -64,22 +70,22 @@ app.get('/api/user/:id/posts', (req, res) => {
         });
 });
 
-app.post('/api/authentication', (req, res) => {
-    if (Math.floor(Math.random() * 10) % 2 === 0) {
-        res.status(200).send({
-            status: 'OK',
-            result: {
-                id: Math.floor(Math.random() * 10),
-                token: v4(),
-            },
-        });
-    } else {
-        res.status(400).send({
-            status: 'Error',
-        });
-    }
+app.post('/api/auth', (req, res) => {
+    // if (Math.floor(Math.random() * 10) % 2 === 0) {
+    res.status(200).send({
+        status: 'OK',
+        result: {
+            id: Math.floor(Math.random() * 10),
+            token: v4(),
+        },
+    });
+    // } else {
+    //     res.status(400).send({
+    //         status: 'Error',
+    //     });
+    // }
 });
 
-app.listen(8080, () => {
+app.listen(8081, () => {
     console.log('ready to dumy login server');
 });
