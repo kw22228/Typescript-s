@@ -1,3 +1,4 @@
+import Profile from './page/profile';
 import Login from './page/login';
 import Store from './store';
 
@@ -16,6 +17,12 @@ function router() {
             login.render();
             break;
         case '#/profile':
+            //프로필
+            const profile = new Profile('#root', {
+                store,
+            });
+            profile.render();
+            break;
     }
 }
 
