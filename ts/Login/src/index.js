@@ -1,6 +1,7 @@
 import Profile from './page/profile';
 import Login from './page/login';
 import Store from './store';
+import Page404 from './page/page-404';
 
 const store = new Store();
 
@@ -22,6 +23,10 @@ function router() {
                 store,
             });
             profile.render();
+            break;
+        default:
+            const page404 = new Page404('#root');
+            page404.render();
             break;
     }
 }
