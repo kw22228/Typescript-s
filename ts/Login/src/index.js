@@ -27,7 +27,6 @@ function router() {
         default:
             const page404 = new Page404('#root');
             page404.render();
-            break;
     }
 }
 
