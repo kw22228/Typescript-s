@@ -65,16 +65,26 @@ export default class Login {
                 };
                 this._data.store.token = token;
 
-                return axios.all([
-                    axios.get(`/api/user/${id}`, options),
-                    axios.get(`/api/user/${id}/posts`, options),
-                ]);
-            })
-            .then(([profile, posts]) => {
-                this._data.store.userProfile = profile.data.result;
-                this._data.store.userPosts = posts.data.results;
+                axios
+                    .all([
+                        axios.get(`/api/user/${id}`, options),
+                        axios.get(`/api/user/${id}/posts`, options),
+                    ])
+                    .then(([profile, posts]) => {
+                        //argument promise all 순서보장
+                        this._data.store.userProfile = profile.data.result;
+                        this._data.store.userPosts = posts.data.results;
 
-                location.href = '/#/profile';
+                        location.href = '/#/profile';
+                    })
+                    .catch(error => {
+                        this._loginFail = true;
+                        this.render();
+                    });
+            })
+            .catch(error => {
+                this._loginFail = true;
+                this.render();
             });
     };
 
