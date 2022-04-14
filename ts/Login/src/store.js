@@ -1,7 +1,7 @@
 export default class Store {
-    #token;
-    #userProfile;
-    #userPosts;
+    #token; //login token
+    #userProfile; //user profile array
+    #userPosts; // user posts array
 
     constructor() {
         this.#token = '';
